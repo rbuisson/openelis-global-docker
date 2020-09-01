@@ -1,0 +1,6 @@
+*/.DS_Store
+sqls/**/*.sql*
+.DS_Store
+
+# Ignore the docker-compose.override.yml file
+docker-compose.override.*

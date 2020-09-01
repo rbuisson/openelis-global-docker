@@ -1,0 +1,76 @@
+version: '3.3'
+
+services:
+    openelis:
+        build:
+          context: openelis
+        # image: tomcat:8.5-jdk11
+        depends_on:
+            - postgresql
+            - hapi-fhir
+        ports:
+            - "8080:8080"
+            - "8443:8443"
+        networks:
+            frontend:
+              aliases:
+                - oe.openelisci.org
+            backend:
+              aliases:
+                - oe.openelisci.org
+        environment:
+            CATALINA_OPTS: "-Ddatasource.url=jdbc:postgresql://postgresql:5432/clinlims -Ddatasource.username=clinlims -Ddatasource.password=password"
+        volumes:
+        #     - ./openelis/OpenELIS-Global.war:/usr/lib/tomcat/webapps/openelis.war
+          - ./properties/openelis/:/run/secrets/
+
+    hapi-fhir:
+        image: hapiproject/hapi:v5.0.0
+        depends_on:
+            - postgresql
+        ports:
+            - "8081:8080"
+            - "8444:8443"
+        networks:
+            frontend:
+              aliases:
+                - fhir.openelisci.org
+            backend:
+              aliases:
+                - fhir.openelisci.org
+        environment:
+            JAVA_OPTS: "-Dhapi.properties=/etc/properties/hapi.properties"
+        volumes:
+            - ./properties/hapi-fhir:/etc/properties/
+#            - /etc/openelis-global/hapi_server.xml:/usr/local/tomcat/conf/server.xml
+
+    postgresql:
+        image: postgres:9.5
+        networks:
+            - backend
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: password
+            POSTGRES_DB: postgres
+            # POSTGRES_INITDB_ARGS: "--auth-host=md5"
+            # OpenELIS DB
+            OPENELIS_DB_NAME: clinlims
+            OPENELIS_DB_USER: clinlims
+            OPENELIS_DB_PASSWORD: password
+            # HAPI FHIR DB
+            HAPI_FHIR_DB_NAME: "hapi"
+            HAPI_FHIR_DB_USER: "hapi"
+            HAPI_FHIR_DB_PASSWORD: "password"
+        volumes:
+            - ./sql/postgresql/:/docker-entrypoint-initdb.d
+            - ./postgresql/resources:/var/postgresql/resources
+            # siteInfo.sql?
+        healthcheck:
+            test: [ "CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres" ]
+            timeout: 45s
+            interval: 10s
+            retries: 10
+
+networks:
+  backend:
+  frontend:
