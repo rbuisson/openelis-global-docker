@@ -4,3 +4,6 @@ sqls/**/*.sql*
 
 # Ignore the docker-compose.override.yml file
 docker-compose.override.*
+
+# Ignore WAR files
+*.war

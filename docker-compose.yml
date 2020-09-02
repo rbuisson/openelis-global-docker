@@ -2,9 +2,7 @@ version: '3.3'
 
 services:
     openelis:
-        build:
-          context: openelis
-        # image: tomcat:8.5-jdk11
+        image: tomcat:8.5-jdk11
         depends_on:
             - postgresql
             - hapi-fhir
@@ -21,8 +19,9 @@ services:
         environment:
             CATALINA_OPTS: "-Ddatasource.url=jdbc:postgresql://postgresql:5432/clinlims -Ddatasource.username=clinlims -Ddatasource.password=password"
         volumes:
-        #     - ./openelis/OpenELIS-Global.war:/usr/lib/tomcat/webapps/openelis.war
-          - ./properties/openelis/:/run/secrets/
+          - ./openelis/OpenELIS-Global.war:/usr/local/tomcat/webapps/openelis.war
+          - ./properties/openelis/common.properties:/run/secrets/common.properties
+          # - ./properties/openelis/server.xml:/usr/local/tomcat/conf/server.xml
 
     hapi-fhir:
         image: hapiproject/hapi:v5.0.0
